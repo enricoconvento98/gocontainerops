@@ -5,6 +5,7 @@ import (
 	"io"
 
 	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/container" // ⬅️ NEW IMPORT
 	"github.com/docker/docker/client"
 )
 
@@ -29,11 +30,13 @@ func (c *Client) ListContainers(ctx context.Context, options types.ContainerList
 
 // ContainerStats returns a one-time snapshot of container stats
 func (c *Client) ContainerStats(ctx context.Context, containerID string) (io.ReadCloser, error) {
-	statsJSON, err := c.cli.ContainerStats(ctx, containerID, false) // false for no stream
-	if err != nil {
-		return nil, err
-	}
-	return statsJSON.Body, nil
+    // Note: The third argument 'false' ensures it's a one-time snapshot, not a stream.
+    statsJSON, err := c.cli.ContainerStats(ctx, containerID, false) 
+    if err != nil {
+        return nil, err
+    }
+    // Correctly returning the Body (which is the io.ReadCloser)
+    return statsJSON.Body, nil 
 }
 
 // ContainerLogs returns a reader for container logs
@@ -42,6 +45,6 @@ func (c *Client) ContainerLogs(ctx context.Context, containerID string, options 
 }
 
 // ContainerTop returns the processes running inside a container
-func (c *Client) ContainerTop(ctx context.Context, containerID string, arguments []string) (types.ContainerTopResponse, error) {
+func (c *Client) ContainerTop(ctx context.Context, containerID string, arguments []string) (container.ContainerTopOKBody, error) { // ⬅️ UPDATED TYPE
 	return c.cli.ContainerTop(ctx, containerID, arguments)
 }

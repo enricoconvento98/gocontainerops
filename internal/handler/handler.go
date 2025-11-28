@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io"
 	"log"
 	"net/http"
 	"strings"
@@ -164,17 +163,18 @@ func (h *Handler) HandleStats(w http.ResponseWriter, r *http.Request) {
 			defer wg.Done()
 
 			// We request a one-time stream snapshot (stream: false)
-			statsJSON, err := h.DockerService.ContainerStats(ctx, c.ID)
-			if err != nil {
-				log.Printf("Error getting stats for %s: %v", c.ID[:10], err)
-				return
-			}
-			defer statsJSON.Body.Close()
+			statsReader, err := h.DockerService.ContainerStats(ctx, c.ID) // Renamed to statsReader for clarity
+            if err != nil {
+                log.Printf("Error getting stats for %s: %v", c.ID[:10], err)
+                return
+            }
+            defer statsReader.Close() // Use statsReader directly, remove .Body
 
-			var stats types.StatsJSON
-			if err := json.NewDecoder(statsJSON.Body).Decode(&stats); err != nil {
-				return
-			}
+            var stats types.StatsJSON
+            // Decode directly from the statsReader, remove .Body
+            if err := json.NewDecoder(statsReader).Decode(&stats); err != nil { 
+                return
+            }
 
 			data := container.ProcessStats(c, &stats)
 
