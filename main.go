@@ -111,20 +111,45 @@ func handleLogs(w http.ResponseWriter, r *http.Request) {
 
 func handleStats(w http.ResponseWriter, r *http.Request) {
 	ctx := context.Background()
-	containers, err := dockerCli.ContainerList(ctx, types.ContainerListOptions{All: false}) // Only running containers
+	containers, err := dockerCli.ContainerList(ctx, types.ContainerListOptions{All: true}) // Get all containers to filter by status
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	searchQuery := r.URL.Query().Get("search")
+	imageFilter := r.URL.Query().Get("image")
+	statusFilter := r.URL.Query().Get("status")
+
+	var filteredContainers []types.Container
+	for _, c := range containers {
+		match := true
+
+		// Filter by status
+		if statusFilter != "" {
+			if !strings.EqualFold(c.State, statusFilter) {
+				match = false
+			}
+		}
+
+		// Filter by image
+		if imageFilter != "" {
+			if !strings.Contains(strings.ToLower(c.Image), strings.ToLower(imageFilter)) {
+				match = false
+			}
+		}
+
+		if match {
+			filteredContainers = append(filteredContainers, c)
+		}
+	}
 
 	var results []ContainerData
 	var wg sync.WaitGroup
 	var mutex sync.Mutex
 
 	// Fetch stats for each container concurrently
-	for _, c := range containers {
+	for _, c := range filteredContainers {
 		wg.Add(1)
 		go func(c types.Container) {
 			defer wg.Done()

@@ -9,12 +9,19 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [selectedContainer, setSelectedContainer] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [imageFilter, setImageFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
   const containerHistories = useRef({});
 
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const response = await fetch(`/api/stats?search=${searchQuery}`);
+        const params = new URLSearchParams();
+        if (searchQuery) params.append('search', searchQuery);
+        if (imageFilter) params.append('image', imageFilter);
+        if (statusFilter) params.append('status', statusFilter);
+
+        const response = await fetch(`/api/stats?${params.toString()}`);
         const data = await response.json();
         setContainers(data || []);
         setLastUpdated(new Date().toLocaleTimeString());
@@ -48,7 +55,7 @@ function App() {
     const interval = setInterval(fetchStats, 2000);
 
     return () => clearInterval(interval);
-  }, [selectedContainer, searchQuery]);
+  }, [selectedContainer, searchQuery, imageFilter, statusFilter]);
 
   const handleCardClick = (container) => {
     setSelectedContainer(container);
@@ -62,9 +69,16 @@ function App() {
     setSearchQuery(event.target.value);
   };
 
-  const filteredContainers = containers.filter((container) =>
-    container.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const handleImageFilterChange = (event) => {
+    setImageFilter(event.target.value);
+  };
+
+  const handleStatusFilterChange = (event) => {
+    setStatusFilter(event.target.value);
+  };
+
+  // Frontend filtering is no longer needed as backend handles it
+  const displayedContainers = containers;
 
   return (
     <div className="app">
@@ -74,13 +88,33 @@ function App() {
             <h1 className="title">Docker Live Monitor</h1>
             <p className="subtitle">Real-time container metrics</p>
           </div>
-          <div className="search-bar">
-            <input
-              type="text"
-              placeholder="Search containers..."
-              value={searchQuery}
-              onChange={handleSearchChange}
-            />
+          <div className="filters">
+            <div className="search-bar">
+              <input
+                type="text"
+                placeholder="Search by name..."
+                value={searchQuery}
+                onChange={handleSearchChange}
+              />
+            </div>
+            <div className="filter-dropdown">
+              <input
+                type="text"
+                placeholder="Filter by image..."
+                value={imageFilter}
+                onChange={handleImageFilterChange}
+              />
+            </div>
+            <div className="filter-dropdown">
+              <select value={statusFilter} onChange={handleStatusFilterChange}>
+                <option value="">All Statuses</option>
+                <option value="running">Running</option>
+                <option value="exited">Exited</option>
+                <option value="paused">Paused</option>
+                <option value="restarting">Restarting</option>
+                <option value="dead">Dead</option>
+              </select>
+            </div>
           </div>
           <div className="last-updated">
             {lastUpdated && `Last updated: ${lastUpdated}`}
@@ -93,10 +127,10 @@ function App() {
               <div className="grid">
                 {loading ? (
                   <div className="loading">Loading Docker Stats...</div>
-                ) : filteredContainers.length === 0 ? (
+                ) : displayedContainers.length === 0 ? (
                   <div className="empty">No active containers found.</div>
                 ) : (
-                  filteredContainers.map((container) => (
+                  displayedContainers.map((container) => (
                     <ContainerCard
                       key={container.id}
                       container={container}
