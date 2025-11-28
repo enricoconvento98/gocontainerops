@@ -30,7 +30,7 @@ COPY go.mod main.go ./
 RUN go mod tidy
 
 # Build the binary
-RUN go build -o monitor main.go
+RUN go build -o monitor .
 
 
 
