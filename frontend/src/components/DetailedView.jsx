@@ -27,6 +27,8 @@ ChartJS.register(
 const MAX_HISTORY = 60; // 60 * 2s = 120s history
 
 function DetailedView({ container, onClose, history }) {
+    const [activeTab, setActiveTab] = useState('stats');
+    const [logs, setLogs] = useState('');
     const [cpuHistory, setCpuHistory] = useState([]);
     const [memHistory, setMemHistory] = useState(history || []);
     const [netInHistory, setNetInHistory] = useState([]);
@@ -57,6 +59,22 @@ function DetailedView({ container, onClose, history }) {
             return newHistory;
         });
     }, [container]);
+
+    useEffect(() => {
+        if (activeTab === 'logs') {
+            const fetchLogs = async () => {
+                try {
+                    const response = await fetch(`/api/logs/${container.id}`);
+                    const data = await response.text();
+                    setLogs(data);
+                } catch (error) {
+                    console.error('Error fetching logs:', error);
+                    setLogs('Error fetching logs.');
+                }
+            };
+            fetchLogs();
+        }
+    }, [activeTab, container.id]);
 
     const createChartData = (data, label, color) => ({
         labels: Array(data.length).fill(''),
@@ -119,136 +137,160 @@ function DetailedView({ container, onClose, history }) {
                 </div>
             </div>
 
+            <div className="tabs">
+                <button
+                    className={`tab-btn ${activeTab === 'stats' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('stats')}
+                >
+                    Stats
+                </button>
+                <button
+                    className={`tab-btn ${activeTab === 'logs' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('logs')}
+                >
+                    Logs
+                </button>
+            </div>
+
             <div className="detailed-body">
-                {/* Current Stats Grid */}
-                <div className="stats-grid">
-                    <div className="stat-card">
-                        <div className="stat-label">CPU Usage</div>
-                        <div className="stat-value">{container.cpu_percent.toFixed(2)}%</div>
-                        <div className="stat-bar">
-                            <div
-                                className="stat-fill stat-cpu"
-                                style={{ width: `${Math.min(container.cpu_percent, 100)}%` }}
-                            />
-                        </div>
-                    </div>
+                {activeTab === 'stats' && (
+                    <>
+                        {/* Current Stats Grid */}
+                        <div className="stats-grid">
+                            <div className="stat-card">
+                                <div className="stat-label">CPU Usage</div>
+                                <div className="stat-value">{container.cpu_percent.toFixed(2)}%</div>
+                                <div className="stat-bar">
+                                    <div
+                                        className="stat-fill stat-cpu"
+                                        style={{ width: `${Math.min(container.cpu_percent, 100)}%` }}
+                                    />
+                                </div>
+                            </div>
 
-                    <div className="stat-card">
-                        <div className="stat-label">Memory Usage</div>
-                        <div className="stat-value">
-                            {container.mem_usage.toFixed(1)} MB
-                        </div>
-                        <div className="stat-secondary">
-                            {container.mem_percent.toFixed(1)}% of {container.mem_limit.toFixed(0)} MB
-                        </div>
-                        <div className="stat-bar">
-                            <div
-                                className="stat-fill stat-mem"
-                                style={{ width: `${Math.min(container.mem_percent, 100)}%` }}
-                            />
-                        </div>
-                    </div>
+                            <div className="stat-card">
+                                <div className="stat-label">Memory Usage</div>
+                                <div className="stat-value">
+                                    {container.mem_usage.toFixed(1)} MB
+                                </div>
+                                <div className="stat-secondary">
+                                    {container.mem_percent.toFixed(1)}% of {container.mem_limit.toFixed(0)} MB
+                                </div>
+                                <div className="stat-bar">
+                                    <div
+                                        className="stat-fill stat-mem"
+                                        style={{ width: `${Math.min(container.mem_percent, 100)}%` }}
+                                    />
+                                </div>
+                            </div>
 
-                    <div className="stat-card">
-                        <div className="stat-label">Network I/O</div>
-                        <div className="stat-value-small">
-                            <span className="stat-io-label">IN:</span> {container.net_input.toFixed(2)} KB
-                        </div>
-                        <div className="stat-value-small">
-                            <span className="stat-io-label">OUT:</span> {container.net_output.toFixed(2)} KB
-                        </div>
-                    </div>
+                            <div className="stat-card">
+                                <div className="stat-label">Network I/O</div>
+                                <div className="stat-value-small">
+                                    <span className="stat-io-label">IN:</span> {container.net_input.toFixed(2)} KB
+                                </div>
+                                <div className="stat-value-small">
+                                    <span className="stat-io-label">OUT:</span> {container.net_output.toFixed(2)} KB
+                                </div>
+                            </div>
 
-                    <div className="stat-card">
-                        <div className="stat-label">Block I/O</div>
-                        <div className="stat-value-small">
-                            <span className="stat-io-label">READ:</span> {container.block_input.toFixed(2)} KB
+                            <div className="stat-card">
+                                <div className="stat-label">Block I/O</div>
+                                <div className="stat-value-small">
+                                    <span className="stat-io-label">READ:</span> {container.block_input.toFixed(2)} KB
+                                </div>
+                                <div className="stat-value-small">
+                                    <span className="stat-io-label">WRITE:</span> {container.block_output.toFixed(2)} KB
+                                </div>
+                            </div>
                         </div>
-                        <div className="stat-value-small">
-                            <span className="stat-io-label">WRITE:</span> {container.block_output.toFixed(2)} KB
-                        </div>
-                    </div>
-                </div>
 
-                {/* Charts */}
-                <div className="charts-container">
-                    <div className="chart-box">
-                        <h3 className="chart-title">CPU Usage Over Time</h3>
-                        <div className="chart-wrapper">
-                            <Line
-                                data={createChartData(cpuHistory, 'CPU %', 'rgb(59, 130, 246)')}
-                                options={chartOptions('CPU %')}
-                            />
-                        </div>
-                    </div>
+                        {/* Charts */}
+                        <div className="charts-container">
+                            <div className="chart-box">
+                                <h3 className="chart-title">CPU Usage Over Time</h3>
+                                <div className="chart-wrapper">
+                                    <Line
+                                        data={createChartData(cpuHistory, 'CPU %', 'rgb(59, 130, 246)')}
+                                        options={chartOptions('CPU %')}
+                                    />
+                                </div>
+                            </div>
 
-                    <div className="chart-box">
-                        <h3 className="chart-title">Memory Usage Over Time</h3>
-                        <div className="chart-wrapper">
-                            <Line
-                                data={createChartData(memHistory, 'Memory (MB)', 'rgb(168, 85, 247)')}
-                                options={chartOptions('Memory (MB)')}
-                            />
-                        </div>
-                    </div>
+                            <div className="chart-box">
+                                <h3 className="chart-title">Memory Usage Over Time</h3>
+                                <div className="chart-wrapper">
+                                    <Line
+                                        data={createChartData(memHistory, 'Memory (MB)', 'rgb(168, 85, 247)')}
+                                        options={chartOptions('Memory (MB)')}
+                                    />
+                                </div>
+                            </div>
 
-                    <div className="chart-box">
-                        <h3 className="chart-title">Network I/O Over Time</h3>
-                        <div className="chart-wrapper">
-                            <Line
-                                data={{
-                                    labels: Array(netInHistory.length).fill(''),
-                                    datasets: [
-                                        {
-                                            label: 'Network IN (KB)',
-                                            data: netInHistory,
-                                            borderColor: 'rgb(34, 197, 94)',
-                                            backgroundColor: 'rgba(34, 197, 94, 0.1)',
-                                            borderWidth: 2,
-                                            tension: 0.4,
-                                            fill: true,
-                                            pointRadius: 0,
-                                        },
-                                        {
-                                            label: 'Network OUT (KB)',
-                                            data: netOutHistory,
-                                            borderColor: 'rgb(239, 68, 68)',
-                                            backgroundColor: 'rgba(239, 68, 68, 0.1)',
-                                            borderWidth: 2,
-                                            tension: 0.4,
-                                            fill: true,
-                                            pointRadius: 0,
-                                        },
-                                    ],
-                                }}
-                                options={chartOptions('KB')}
-                            />
+                            <div className="chart-box">
+                                <h3 className="chart-title">Network I/O Over Time</h3>
+                                <div className="chart-wrapper">
+                                    <Line
+                                        data={{
+                                            labels: Array(netInHistory.length).fill(''),
+                                            datasets: [
+                                                {
+                                                    label: 'Network IN (KB)',
+                                                    data: netInHistory,
+                                                    borderColor: 'rgb(34, 197, 94)',
+                                                    backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                                                    borderWidth: 2,
+                                                    tension: 0.4,
+                                                    fill: true,
+                                                    pointRadius: 0,
+                                                },
+                                                {
+                                                    label: 'Network OUT (KB)',
+                                                    data: netOutHistory,
+                                                    borderColor: 'rgb(239, 68, 68)',
+                                                    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                                                    borderWidth: 2,
+                                                    tension: 0.4,
+                                                    fill: true,
+                                                    pointRadius: 0,
+                                                },
+                                            ],
+                                        }}
+                                        options={chartOptions('KB')}
+                                    />
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                </div>
 
-                {/* Container Info */}
-                <div className="info-section">
-                    <h3 className="info-title">Container Information</h3>
-                    <div className="info-grid">
-                        <div className="info-item">
-                            <span className="info-key">Container ID:</span>
-                            <span className="info-value">{container.id}</span>
+                        {/* Container Info */}
+                        <div className="info-section">
+                            <h3 className="info-title">Container Information</h3>
+                            <div className="info-grid">
+                                <div className="info-item">
+                                    <span className="info-key">Container ID:</span>
+                                    <span className="info-value">{container.id}</span>
+                                </div>
+                                <div className="info-item">
+                                    <span className="info-key">Image:</span>
+                                    <span className="info-value">{container.image}</span>
+                                </div>
+                                <div className="info-item">
+                                    <span className="info-key">Status:</span>
+                                    <span className="info-value">{container.status}</span>
+                                </div>
+                                <div className="info-item">
+                                    <span className="info-key">State:</span>
+                                    <span className="info-value">{container.state}</span>
+                                </div>
+                            </div>
                         </div>
-                        <div className="info-item">
-                            <span className="info-key">Image:</span>
-                            <span className="info-value">{container.image}</span>
-                        </div>
-                        <div className="info-item">
-                            <span className="info-key">Status:</span>
-                            <span className="info-value">{container.status}</span>
-                        </div>
-                        <div className="info-item">
-                            <span className="info-key">State:</span>
-                            <span className="info-value">{container.state}</span>
-                        </div>
+                    </>
+                )}
+                {activeTab === 'logs' && (
+                    <div className="logs-section">
+                        <pre className="logs-content">{logs}</pre>
                     </div>
-                </div>
+                )}
             </div>
         </div>
     );
