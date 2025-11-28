@@ -11,6 +11,7 @@ import {
     Legend,
     Filler
 } from 'chart.js';
+import zoomPlugin from 'chartjs-plugin-zoom';
 import './DetailedView.css';
 
 ChartJS.register(
@@ -21,7 +22,8 @@ ChartJS.register(
     Title,
     Tooltip,
     Legend,
-    Filler
+    Filler,
+    zoomPlugin
 );
 
 const MAX_HISTORY = 60; // 60 * 2s = 120s history
@@ -111,6 +113,22 @@ function DetailedView({ container, onClose, history }) {
         plugins: {
             legend: { display: true, position: 'top', labels: { color: '#9ca3af' } },
             tooltip: { enabled: true },
+            zoom: {
+                pan: {
+                    enabled: true,
+                    mode: 'x',
+                    modifierKey: 'ctrl',
+                },
+                zoom: {
+                    wheel: {
+                        enabled: true,
+                    },
+                    pinch: {
+                        enabled: true
+                    },
+                    mode: 'x',
+                }
+            }
         },
         scales: {
             x: { display: false },
