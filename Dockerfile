@@ -25,6 +25,7 @@ RUN apk add --no-cache git
 
 # Copy all Go files
 COPY go.mod main.go ./
+COPY internal/ internal/
 
 # Tidy and download dependencies
 RUN go mod tidy
