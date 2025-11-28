@@ -1,6 +1,6 @@
 # GoContainerOps
 
-![GoContainerOps Screenshot](https://i.imgur.com/9A7f4iL.png)
+<img src="frontend/public/logo.png" width="150">
 
 A lightweight, real-time container monitoring dashboard written in Go and React. It connects to the local Docker socket to display CPU usage, memory consumption, network I/O, and block I/O for all active containers.
 
