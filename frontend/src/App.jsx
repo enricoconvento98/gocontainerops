@@ -23,7 +23,18 @@ function App() {
 
         const response = await fetch(`/api/stats?${params.toString()}`);
         const data = await response.json();
-        setContainers(data || []);
+
+        setContainers(prevContainers => {
+          const newContainers = data || [];
+          if (selectedContainer) {
+            return prevContainers.map(pc => {
+              const updatedContainer = newContainers.find(nc => nc.id === pc.id);
+              return updatedContainer || pc;
+            });
+          }
+          return newContainers;
+        });
+
         setLastUpdated(new Date().toLocaleTimeString());
         setLoading(false);
 
@@ -55,7 +66,7 @@ function App() {
     const interval = setInterval(fetchStats, 2000);
 
     return () => clearInterval(interval);
-  }, [selectedContainer, searchQuery, imageFilter, statusFilter]);
+  }, [searchQuery, imageFilter, statusFilter]);
 
   const handleCardClick = (container) => {
     setSelectedContainer(container);
