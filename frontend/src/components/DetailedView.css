@@ -298,3 +298,52 @@
 .logs-content::-webkit-scrollbar-thumb:hover {
     background: #4b5563;
 }
+
+.processes-section {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.processes-table-container {
+    flex: 1;
+    overflow-x: auto;
+    background-color: #111827;
+    border-radius: 0.5rem;
+    border: 1px solid #374151;
+}
+
+.processes-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: monospace;
+    font-size: 0.8rem;
+    color: #d1d5db;
+}
+
+.processes-table th,
+.processes-table td {
+    padding: 0.75rem 1rem;
+    text-align: left;
+    border-bottom: 1px solid #374151;
+}
+
+.processes-table th {
+    background-color: #1f2937;
+    color: #9ca3af;
+    text-transform: uppercase;
+    font-weight: 600;
+    position: sticky;
+    top: 0;
+    z-index: 5;
+}
+
+.processes-table tr:hover {
+    background-color: #1f2937;
+}
+
+.empty-processes {
+    text-align: center;
+    color: #6b7280;
+    padding: 2rem;
+}

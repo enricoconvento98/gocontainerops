@@ -29,6 +29,7 @@ const MAX_HISTORY = 60; // 60 * 2s = 120s history
 function DetailedView({ container, onClose, history }) {
     const [activeTab, setActiveTab] = useState('stats');
     const [logs, setLogs] = useState('');
+    const [processes, setProcesses] = useState({ Titles: [], Processes: [] });
     const [cpuHistory, setCpuHistory] = useState([]);
     const [memHistory, setMemHistory] = useState(history || []);
     const [netInHistory, setNetInHistory] = useState([]);
@@ -73,6 +74,18 @@ function DetailedView({ container, onClose, history }) {
                 }
             };
             fetchLogs();
+        } else if (activeTab === 'processes') {
+            const fetchProcesses = async () => {
+                try {
+                    const response = await fetch(`/api/processes/${container.id}`);
+                    const data = await response.json();
+                    setProcesses(data);
+                } catch (error) {
+                    console.error('Error fetching processes:', error);
+                    setProcesses({ Titles: [], Processes: [['Error fetching processes.']] });
+                }
+            };
+            fetchProcesses();
         }
     }, [activeTab, container.id]);
 
@@ -149,6 +162,12 @@ function DetailedView({ container, onClose, history }) {
                     onClick={() => setActiveTab('logs')}
                 >
                     Logs
+                </button>
+                <button
+                    className={`tab-btn ${activeTab === 'processes' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('processes')}
+                >
+                    Processes
                 </button>
             </div>
 
@@ -289,6 +308,34 @@ function DetailedView({ container, onClose, history }) {
                 {activeTab === 'logs' && (
                     <div className="logs-section">
                         <pre className="logs-content">{logs}</pre>
+                    </div>
+                )}
+                {activeTab === 'processes' && (
+                    <div className="processes-section">
+                        {processes.Processes.length > 0 ? (
+                            <div className="processes-table-container">
+                                <table className="processes-table">
+                                    <thead>
+                                        <tr>
+                                            {processes.Titles.map((title, index) => (
+                                                <th key={index}>{title}</th>
+                                            ))}
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {processes.Processes.map((process, pIndex) => (
+                                            <tr key={pIndex}>
+                                                {process.map((col, cIndex) => (
+                                                    <td key={cIndex}>{col}</td>
+                                                ))}
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        ) : (
+                            <div className="empty-processes">No processes found.</div>
+                        )}
                     </div>
                 )}
             </div>

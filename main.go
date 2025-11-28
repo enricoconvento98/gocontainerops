@@ -49,9 +49,24 @@ func main() {
 	// API Endpoint
 	http.HandleFunc("/api/stats", handleStats)
 	http.HandleFunc("/api/logs/", handleLogs)
+	http.HandleFunc("/api/processes/", handleProcesses)
 
 	fmt.Println("Server starting on :8080...")
 	log.Fatal(http.ListenAndServe(":8080", nil))
+}
+
+func handleProcesses(w http.ResponseWriter, r *http.Request) {
+	ctx := context.Background()
+	id := strings.TrimPrefix(r.URL.Path, "/api/processes/")
+
+	top, err := dockerCli.ContainerTop(ctx, id, []string{})
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(top)
 }
 
 func handleLogs(w http.ResponseWriter, r *http.Request) {
