@@ -92,7 +92,10 @@
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); /* More flexible grid */
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  max-width: calc(3 * 250px + 2 * 1rem); /* 3 columns * card width + 2 * gap */
+  justify-content: center; /* Center the grid if it doesn't fill the width */
+  margin: 0 auto; /* Center the grid itself */
   gap: 1rem;
 }
 
