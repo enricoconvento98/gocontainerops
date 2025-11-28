@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Line } from 'react-chartjs-2';
 import {
     Chart as ChartJS,
@@ -27,15 +27,25 @@ ChartJS.register(
 );
 
 const MAX_HISTORY = 60; // 60 * 2s = 120s history
+const MAX_LOG_LINES = 200; // Max lines to show in logs
 
 function DetailedView({ container, onClose, history }) {
     const [activeTab, setActiveTab] = useState('stats');
-    const [logs, setLogs] = useState('');
+    const [logs, setLogs] = useState([]); // Change to array for easier line management
     const [processes, setProcesses] = useState({ Titles: [], Processes: [] });
     const [cpuHistory, setCpuHistory] = useState([]);
     const [memHistory, setMemHistory] = useState(history || []);
     const [netInHistory, setNetInHistory] = useState([]);
     const [netOutHistory, setNetOutHistory] = useState([]);
+    const [followLogs, setFollowLogs] = useState(true); // New state for follow mode
+    const logsEndRef = useRef(null); // Ref for auto-scrolling logs
+
+    // Auto-scroll effect
+    useEffect(() => {
+        if (activeTab === 'logs' && followLogs && logsEndRef.current) {
+            logsEndRef.current.scrollIntoView({ behavior: 'smooth' });
+        }
+    }, [logs, activeTab, followLogs]);
 
     useEffect(() => {
         setCpuHistory((prev) => {
@@ -65,17 +75,47 @@ function DetailedView({ container, onClose, history }) {
 
     useEffect(() => {
         if (activeTab === 'logs') {
-            const fetchLogs = async () => {
-                try {
-                    const response = await fetch(`/api/logs/${container.id}`);
-                    const data = await response.text();
-                    setLogs(data);
-                } catch (error) {
-                    console.error('Error fetching logs:', error);
-                    setLogs('Error fetching logs.');
+            setLogs([]); // Clear logs when switching to logs tab or container changes
+
+            let eventSource;
+            const fetchAndFollowLogs = async () => {
+                if (followLogs) {
+                    // Use EventSource for streaming logs
+                    eventSource = new EventSource(`/api/logs/${container.id}?follow=true`);
+                    eventSource.onmessage = (event) => {
+                        setLogs((prevLogs) => {
+                            const newLogs = [...prevLogs, event.data];
+                            if (newLogs.length > MAX_LOG_LINES) {
+                                newLogs.shift(); // Keep only the last MAX_LOG_LINES
+                            }
+                            return newLogs;
+                        });
+                    };
+                    eventSource.onerror = (error) => {
+                        console.error('EventSource failed:', error);
+                        eventSource.close();
+                        setLogs((prevLogs) => [...prevLogs, 'Error: Log stream disconnected.']);
+                    };
+                } else {
+                    // Fetch logs once
+                    try {
+                        const response = await fetch(`/api/logs/${container.id}`);
+                        const data = await response.text();
+                        setLogs(data.split('\n').slice(-MAX_LOG_LINES)); // Split and take last MAX_LOG_LINES
+                    } catch (error) {
+                        console.error('Error fetching logs:', error);
+                        setLogs(['Error fetching logs.']);
+                    }
                 }
             };
-            fetchLogs();
+
+            fetchAndFollowLogs();
+
+            return () => {
+                if (eventSource) {
+                    eventSource.close();
+                }
+            };
         } else if (activeTab === 'processes') {
             const fetchProcesses = async () => {
                 try {
@@ -89,7 +129,7 @@ function DetailedView({ container, onClose, history }) {
             };
             fetchProcesses();
         }
-    }, [activeTab, container.id]);
+    }, [activeTab, container.id, followLogs]); // Add followLogs to dependencies
 
     const createChartData = (data, label, color) => ({
         labels: Array(data.length).fill(''),
@@ -325,7 +365,22 @@ function DetailedView({ container, onClose, history }) {
                 )}
                 {activeTab === 'logs' && (
                     <div className="logs-section">
-                        <pre className="logs-content">{logs}</pre>
+                        <div className="logs-header">
+                            <label className="follow-logs-toggle">
+                                <input
+                                    type="checkbox"
+                                    checked={followLogs}
+                                    onChange={() => setFollowLogs(!followLogs)}
+                                />
+                                Follow Logs
+                            </label>
+                        </div>
+                        <pre className="logs-content">
+                            {logs.map((line, index) => (
+                                <div key={index}>{line}</div>
+                            ))}
+                            <div ref={logsEndRef} /> {/* Element to scroll to */}
+                        </pre>
                     </div>
                 )}
                 {activeTab === 'processes' && (

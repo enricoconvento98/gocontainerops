@@ -263,87 +263,141 @@
 }
 
 .logs-section {
-    height: 100%;
+    flex-grow: 1;
     display: flex;
     flex-direction: column;
-}
-
-.logs-content {
-    flex: 1;
-    background-color: #000000;
-    color: #d1d5db;
-    font-family: monospace;
-    font-size: 0.8rem;
+    background-color: #111827;
+    border-radius: 8px;
     padding: 1rem;
-    border-radius: 0.5rem;
+    font-family: 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
+    font-size: 0.85rem;
+    color: #d1d5db;
+    overflow: hidden;
+  }
+  
+  .logs-header {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 0.5rem;
+  }
+  
+  .follow-logs-toggle {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #9ca3af;
+    font-size: 0.8rem;
+    cursor: pointer;
+  }
+  
+  .follow-logs-toggle input[type="checkbox"] {
+    /* Style your checkbox if needed */
+    accent-color: #a855f7;
+  }
+  
+  .logs-content {
+    flex-grow: 1;
+    overflow-y: auto;
     white-space: pre-wrap;
     word-break: break-all;
-    overflow-y: auto;
-    height: 600px;
-}
-
-.logs-content::-webkit-scrollbar {
+    padding-right: 0.5rem; /* For scrollbar */
+  }
+  
+  .logs-content::-webkit-scrollbar {
     width: 6px;
-}
-
-.logs-content::-webkit-scrollbar-track {
-    background: #111827;
-}
-
-.logs-content::-webkit-scrollbar-thumb {
+  }
+  
+  .logs-content::-webkit-scrollbar-track {
+    background: #1f2937;
+    border-radius: 3px;
+  }
+  
+  .logs-content::-webkit-scrollbar-thumb {
     background: #374151;
     border-radius: 3px;
-}
-
-.logs-content::-webkit-scrollbar-thumb:hover {
+  }
+  
+  .logs-content::-webkit-scrollbar-thumb:hover {
     background: #4b5563;
-}
-
-.processes-section {
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-}
-
-.processes-table-container {
-    flex: 1;
-    overflow-x: auto;
+  }
+  
+  .processes-section {
+    flex-grow: 1;
+    overflow: auto;
     background-color: #111827;
-    border-radius: 0.5rem;
-    border: 1px solid #374151;
-}
-
-.processes-table {
+    border-radius: 8px;
+    padding: 1rem;
+  }
+  
+  .processes-table-container {
+    overflow-x: auto;
+  }
+  
+  .processes-table {
     width: 100%;
     border-collapse: collapse;
-    font-family: monospace;
-    font-size: 0.8rem;
+    font-family: 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
+    font-size: 0.85rem;
     color: #d1d5db;
-}
-
-.processes-table th,
-.processes-table td {
-    padding: 0.75rem 1rem;
+  }
+  
+  .processes-table th,
+  .processes-table td {
+    border: 1px solid #374151;
+    padding: 0.5rem 0.75rem;
     text-align: left;
-    border-bottom: 1px solid #374151;
-}
-
-.processes-table th {
+  }
+  
+  .processes-table th {
     background-color: #1f2937;
-    color: #9ca3af;
-    text-transform: uppercase;
     font-weight: 600;
+    color: #f9fafb;
     position: sticky;
     top: 0;
-    z-index: 5;
-}
-
-.processes-table tr:hover {
-    background-color: #1f2937;
-}
-
-.empty-processes {
+    z-index: 1;
+  }
+  
+  .empty-processes {
     text-align: center;
     color: #6b7280;
     padding: 2rem;
-}
+  }
+  
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+    .detailed-header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.5rem;
+    }
+  
+    .detailed-header-right {
+      width: 100%;
+      justify-content: space-between;
+    }
+  
+    .detailed-title {
+      font-size: 1.25rem;
+    }
+  
+    .detailed-subtitle {
+      font-size: 0.7rem;
+    }
+  
+    .stats-grid {
+      grid-template-columns: 1fr; /* Stack stats cards vertically */
+    }
+  
+    .info-grid {
+      grid-template-columns: 1fr; /* Stack info items vertically */
+    }
+  
+    .tabs {
+      padding: 0 1rem;
+    }
+  
+    .tab-btn {
+      padding: 0.5rem 0.75rem;
+      font-size: 0.8rem;
+    }
+  }

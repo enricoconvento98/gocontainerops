@@ -74,11 +74,14 @@ func handleLogs(w http.ResponseWriter, r *http.Request) {
 	ctx := context.Background()
 	id := strings.TrimPrefix(r.URL.Path, "/api/logs/")
 
+	follow := r.URL.Query().Get("follow") == "true"
+
 	options := types.ContainerLogsOptions{
 		ShowStdout: true,
 		ShowStderr: true,
 		Timestamps: true,
-		Tail:       "100",
+		Tail:       "200", // Always show last 200 lines
+		Follow:     follow,
 	}
 
 	reader, err := dockerCli.ContainerLogs(ctx, id, options)
@@ -89,24 +92,50 @@ func handleLogs(w http.ResponseWriter, r *http.Request) {
 	defer reader.Close()
 
 	w.Header().Set("Content-Type", "text/plain")
-	// We need to strip the 8-byte header from each line of the raw log stream
-	// See: https://docs.docker.com/engine/api/v1.41/#operation/ContainerAttach
-	// The first byte is the stream type (1 for stdout, 2 for stderr)
-	// The next 3 bytes are reserved
-	// The next 4 bytes are the size of the message
-	hdr := make([]byte, 8)
-	for {
-		_, err := reader.Read(hdr)
-		if err != nil {
-			break
+	if follow {
+		// For follow mode, we need to stream the logs
+		// Set appropriate headers for streaming
+		w.Header().Set("Content-Type", "text/event-stream")
+		w.Header().Set("Cache-Control", "no-cache")
+		w.Header().Set("Connection", "keep-alive")
+
+		flusher, ok := w.(http.Flusher)
+		if !ok {
+			http.Error(w, "Streaming unsupported!", http.StatusInternalServerError)
+			return
 		}
-		size := int(hdr[4])<<24 | int(hdr[5])<<16 | int(hdr[6])<<8 | int(hdr[7])
-		content := make([]byte, size)
-		_, err = reader.Read(content)
-		if err != nil {
-			break
+
+		hdr := make([]byte, 8)
+		for {
+			_, err := reader.Read(hdr)
+			if err != nil {
+				break
+			}
+			size := int(hdr[4])<<24 | int(hdr[5])<<16 | int(hdr[6])<<8 | int(hdr[7])
+			content := make([]byte, size)
+			_, err = reader.Read(content)
+			if err != nil {
+				break
+			}
+			fmt.Fprintf(w, "data: %s\n\n", string(content))
+			flusher.Flush()
 		}
-		w.Write(content)
+	} else {
+		// For non-follow mode, just send the logs once
+		hdr := make([]byte, 8)
+		for {
+			_, err := reader.Read(hdr)
+			if err != nil {
+				break
+			}
+			size := int(hdr[4])<<24 | int(hdr[5])<<16 | int(hdr[6])<<8 | int(hdr[7])
+			content := make([]byte, size)
+			_, err = reader.Read(content)
+			if err != nil {
+				break
+			}
+			w.Write(content)
+		}
 	}
 }
 
