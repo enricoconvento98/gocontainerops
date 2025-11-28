@@ -84,9 +84,12 @@ function App() {
     <div className="app">
       <div className="container">
         <header className="header">
-          <div>
-            <h1 className="title">GoContainerOps</h1>
-            <p className="subtitle">Real-time Go Container Metrics</p>
+          <div className="header-title">
+            <img src="/logo.png" alt="GoContainerOps Logo" className="logo" />
+            <div>
+              <h1 className="title">GoContainerOps</h1>
+              <p className="subtitle">Real-time Go Container Metrics</p>
+            </div>
           </div>
           <div className="filters">
             <div className="search-bar">

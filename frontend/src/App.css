@@ -252,3 +252,14 @@
     font-size: 0.8rem;
   }
 }
+
+.header-title {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.logo {
+  height: 50px;
+  width: 50px;
+}
