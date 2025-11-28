@@ -1,7 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
 import ContainerCard from './components/ContainerCard';
 import DetailedView from './components/DetailedView';
+import Dashboard from './components/Dashboard';
 import './App.css';
+import './components/Dashboard.css';
+import './components/StatCard.css';
 
 function App() {
   const [containers, setContainers] = useState([]);
@@ -11,6 +14,7 @@ function App() {
   const [searchQuery, setSearchQuery] = useState('');
   const [imageFilter, setImageFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
+  const [showDashboard, setShowDashboard] = useState(true);
   const containerHistories = useRef({});
 
   useEffect(() => {
@@ -88,6 +92,10 @@ function App() {
     setStatusFilter(event.target.value);
   };
 
+  const toggleDashboard = () => {
+    setShowDashboard(!showDashboard);
+  };
+
   // Frontend filtering is no longer needed as backend handles it
   const displayedContainers = containers;
 
@@ -130,10 +138,17 @@ function App() {
               </select>
             </div>
           </div>
-          <div className="last-updated">
-            {lastUpdated && `Last updated: ${lastUpdated}`}
+          <div className="header-actions">
+            <button onClick={toggleDashboard} className="toggle-dashboard-btn">
+              {showDashboard ? 'Hide' : 'Show'} Dashboard
+            </button>
+            <div className="last-updated">
+              {lastUpdated && `Last updated: ${lastUpdated}`}
+            </div>
           </div>
         </header>
+
+        {showDashboard && <Dashboard containers={containers} />}
 
         <div className={`main-content ${selectedContainer ? 'split-view' : ''}`}>
           <div className="containers-section">
