@@ -140,6 +140,17 @@ func handleStats(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 
+		// Filter by search query (name)
+		if searchQuery != "" {
+			name := "unknown"
+			if len(c.Names) > 0 {
+				name = c.Names[0][1:] // Remove leading slash
+			}
+			if !strings.Contains(strings.ToLower(name), strings.ToLower(searchQuery)) {
+				match = false
+			}
+		}
+
 		if match {
 			filteredContainers = append(filteredContainers, c)
 		}
@@ -169,12 +180,6 @@ func handleStats(w http.ResponseWriter, r *http.Request) {
 			}
 
 			data := processStats(c, &stats)
-
-			if searchQuery != "" {
-				if !strings.Contains(strings.ToLower(data.Name), strings.ToLower(searchQuery)) {
-					return
-				}
-			}
 
 			mutex.Lock()
 			results = append(results, data)
