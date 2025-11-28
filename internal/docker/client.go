@@ -28,8 +28,12 @@ func (c *Client) ListContainers(ctx context.Context, options types.ContainerList
 }
 
 // ContainerStats returns a one-time snapshot of container stats
-func (c *Client) ContainerStats(ctx context.Context, containerID string) (types.ContainerStatsResponse, error) {
-	return c.cli.ContainerStats(ctx, containerID, false) // false for no stream
+func (c *Client) ContainerStats(ctx context.Context, containerID string) (io.ReadCloser, error) {
+	statsJSON, err := c.cli.ContainerStats(ctx, containerID, false) // false for no stream
+	if err != nil {
+		return nil, err
+	}
+	return statsJSON.Body, nil
 }
 
 // ContainerLogs returns a reader for container logs
@@ -38,6 +42,6 @@ func (c *Client) ContainerLogs(ctx context.Context, containerID string, options 
 }
 
 // ContainerTop returns the processes running inside a container
-func (c *Client) ContainerTop(ctx context.Context, containerID string, arguments []string) (types.ContainerTopOKBody, error) {
+func (c *Client) ContainerTop(ctx context.Context, containerID string, arguments []string) (types.ContainerTopResponse, error) {
 	return c.cli.ContainerTop(ctx, containerID, arguments)
 }

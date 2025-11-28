@@ -1,8 +1,6 @@
 package container
 
 import (
-	"strings"
-
 	"github.com/docker/docker/api/types"
 )
 
