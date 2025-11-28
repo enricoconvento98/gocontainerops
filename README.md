@@ -1,9 +1,20 @@
-Docker Live Monitor
+# Docker Live Monitor
 
-A lightweight, real-time Docker container monitoring dashboard written in Go (Golang). It connects to the local Docker socket to display CPU usage, memory consumption, network I/O, and block I/O for all active containers.
+![Docker Live Monitor Screenshot](https://i.imgur.com/9A7f4iL.png)
 
-📂 Folder Structure
+A lightweight, real-time Docker container monitoring dashboard written in Go and React. It connects to the local Docker socket to display CPU usage, memory consumption, network I/O, and block I/O for all active containers.
 
+## ✨ Features
+
+- **Real-time Monitoring**: View live metrics for all your running Docker containers.
+- **Detailed Stats**: Get detailed information on CPU, memory, network I/O, and block I/O.
+- **Historical Data**: See the last 120 seconds of CPU, memory, and network I/O history for each container.
+- **Interactive UI**: A modern and responsive user interface built with React and Chart.js.
+- **Easy to Use**: Get up and running with a single command.
+
+## 📂 Folder Structure
+
+```
 docker-monitor/
 ├── main.go               # Go backend: fetches stats from Docker API
 ├── go.mod                # Go module definitions
@@ -18,79 +29,76 @@ docker-monitor/
     │   └── ...
     ├── package.json
     └── vite.config.js    # Vite configuration with proxy
+```
 
+## 🚀 Getting Started
 
+### Prerequisites
 
-🚀 Getting Started
+- [Docker](https://docs.docker.com/get-docker/)
+- [Docker Compose](https://docs.docker.com/compose/install/)
+- [Go](https://golang.org/doc/install) (1.21+) (Only if you want to build/run locally without Docker)
 
-Prerequisites
-
-Docker and Docker Compose installed on your machine.
-
-Go 1.21+ (Only if you want to build/run locally without Docker).
-
-Option 1: Run with Docker Compose (Recommended)
+### Option 1: Run with Docker Compose (Recommended)
 
 This is the easiest way to run the application, as it isolates the environment and handles dependencies automatically.
 
-Start the application:
+1.  **Start the application:**
 
-make up
-# OR
-docker-compose up --build -d
+    ```bash
+    make up
+    # OR
+    docker-compose up --build -d
+    ```
 
+2.  **Open your browser:**
 
-Open your browser:
-Navigate to http://localhost:8080.
+    Navigate to [http://localhost:8080](http://localhost:8080).
 
-Stop the application:
+3.  **Stop the application:**
 
-make down
-# OR
-docker-compose down
+    ```bash
+    make down
+    # OR
+    docker-compose down
+    ```
 
-
-Option 2: Run Locally (for Development)
+### Option 2: Run Locally (for Development)
 
 If you have Go installed and want to run the binary directly on your host:
 
-Install dependencies:
+1.  **Install dependencies:**
 
-go mod tidy
+    ```bash
+    go mod tidy
+    ```
 
+2.  **Run the application:**
 
-Run the application:
+    ```bash
+    go run main.go
+    # OR
+    make run
+    ```
 
-go run main.go
-# OR
-make run
+    **Note:** The application requires access to `/var/run/docker.sock`. On Linux/macOS, you might need `sudo` or your user must be in the `docker` group.
 
+## 🛠 Tech Stack
 
-Note: The application requires access to /var/run/docker.sock. On Linux/macOS, you might need sudo or your user must be in the docker group.
+- **Backend**: [Go](https://golang.org/)
+- **Frontend**: [React](https://reactjs.org/), [Chart.js](https://www.chartjs.org/)
+- **Build Tool**: [Vite](https://vitejs.dev/)
+- **Containerization**: [Docker](https://www.docker.com/), [Docker Compose](https://docs.docker.com/compose/)
 
-🛠 Tech Stack
+## 📡 API Endpoints
 
-Backend: Go (Golang)
+- `GET /`: Serves the dashboard.
+- `GET /api/stats`: Returns a JSON array of currently running containers with real-time metrics.
 
-Library: Official Docker SDK (github.com/docker/docker/client)
+## 🤝 Contributing
 
-Frontend: React, Chart.js (for memory trend visualization)
+Contributions, issues, and feature requests are welcome! Feel free to check the [issues page](https.github.com/enricoconvento98/gocontainerops/issues).
 
-Build Tool: Vite
+## 📝 License
 
-Containerization: Docker, Alpine Linux, Multi-stage builds
-
-
-📡 API Endpoints
-
-GET /: Serves the dashboard.
-
-GET /api/stats: Returns a JSON array of currently running containers with real-time metrics.
-
-⚠️ Troubleshooting
-
-"Error response from daemon: Bad response from Docker engine"
-Ensure your Docker Desktop or Docker Daemon is running.
-
-"permission denied while trying to connect to the Docker daemon socket"
-If running locally on Linux, you may need to run with sudo or ensure your user has permissions to access /var/run/docker.sock. When running via Docker Compose, the socket mapping handles this automatically.
+This project is [MIT licensed](https://github.com/enricoconvento98/gocontainerops/blob/main/LICENSE).
