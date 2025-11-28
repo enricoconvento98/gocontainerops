@@ -124,7 +124,7 @@ function App() {
         <div className={`main-content ${selectedContainer ? 'split-view' : ''}`}>
           <div className="containers-section">
             <div className="containers-scroll">
-              <div className="grid">
+              <div className="container-list">
                 {loading ? (
                   <div className="loading">Loading Docker Stats...</div>
                 ) : displayedContainers.length === 0 ? (

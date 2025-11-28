@@ -74,18 +74,30 @@ function ContainerCard({ container, onClick, isSelected, isDetailedViewOpen }) {
     };
 
     return (
-        <div className={`card ${isSelected ? 'card-selected' : ''} ${isDetailedViewOpen ? 'card-small' : ''}`} onClick={onClick}>
-            <div className="card-header">
-                <div>
-                    <h3 className="card-title" title={container.name}>
-                        {container.name}
-                    </h3>
-                    {!isDetailedViewOpen && (
-                        <p className="card-subtitle">
-                            {container.id} • {container.image}
-                        </p>
-                    )}
-                </div>
+        <div className={`list-item ${isSelected ? 'list-item-selected' : ''} ${isDetailedViewOpen ? 'list-item-small' : ''}`} onClick={onClick}>
+            <div className="list-item-header">
+                <h3 className="list-item-title" title={container.name}>
+                    {container.name}
+                </h3>
+                {!isDetailedViewOpen && (
+                    <p className="list-item-subtitle">
+                        {container.id} • {container.image}
+                    </p>
+                )}
+            </div>
+            <div className="list-item-metrics">
+                {!isDetailedViewOpen && (
+                    <>
+                        <div className="metric">
+                            <span className="metric-label">CPU:</span>
+                            <span className="metric-value">{container.cpu_percent.toFixed(2)}%</span>
+                        </div>
+                        <div className="metric">
+                            <span className="metric-label">Mem:</span>
+                            <span className="metric-value">{container.mem_usage.toFixed(1)}MB</span>
+                        </div>
+                    </>
+                )}
                 <span
                     className={`badge ${container.state === 'running' ? 'badge-running' : 'badge-stopped'
                         }`}
@@ -93,61 +105,6 @@ function ContainerCard({ container, onClick, isSelected, isDetailedViewOpen }) {
                     {container.state.toUpperCase()}
                 </span>
             </div>
-
-            {!isDetailedViewOpen && (
-                <div className="card-body">
-                    {/* CPU */}
-                    <div className="metric">
-                        <div className="metric-header">
-                            <span className="metric-label">CPU Usage</span>
-                            <span className="metric-value">
-                                {container.cpu_percent.toFixed(2)}%
-                            </span>
-                        </div>
-                        <div className="progress-bar">
-                            <div
-                                className="progress-fill progress-cpu"
-                                style={{ width: `${Math.min(container.cpu_percent, 100)}%` }}
-                            />
-                        </div>
-                    </div>
-
-                    {/* Memory */}
-                    <div className="metric">
-                        <div className="metric-header">
-                            <span className="metric-label">Memory</span>
-                            <span className="metric-value">
-                                {container.mem_usage.toFixed(1)} / {container.mem_limit.toFixed(0)} MB
-                            </span>
-                        </div>
-                        <div className="progress-bar">
-                            <div
-                                className="progress-fill progress-mem"
-                                style={{ width: `${Math.min(container.mem_percent, 100)}%` }}
-                            />
-                        </div>
-                        <div className="chart-container">
-                            <Line data={chartData} options={chartOptions} />
-                        </div>
-                    </div>
-
-                    {/* IO Stats */}
-                    <div className="io-stats">
-                        <div className="io-stat">
-                            <p className="io-label">Network (I/O)</p>
-                            <p className="io-value">
-                                {container.net_input.toFixed(1)} / {container.net_output.toFixed(1)} KB
-                            </p>
-                        </div>
-                        <div className="io-stat">
-                            <p className="io-label">Block (I/O)</p>
-                            <p className="io-value">
-                                {container.block_input.toFixed(1)} / {container.block_output.toFixed(1)} KB
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            )}
         </div>
     );
 }

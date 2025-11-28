@@ -90,13 +90,10 @@
   padding-right: 0.5rem;
 }
 
-.grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  max-width: calc(3 * 250px + 2 * 1rem); /* 3 columns * card width + 2 * gap */
-  justify-content: center; /* Center the grid if it doesn't fill the width */
-  margin: 0 auto; /* Center the grid itself */
-  gap: 1rem;
+.container-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem; /* Smaller gap for list items */
 }
 
 .loading,
@@ -143,7 +140,7 @@
 
 /* Responsive adjustments */
 
-/* For screens smaller than 1200px, adjust split view and grid */
+/* For screens smaller than 1200px, adjust split view */
 @media (max-width: 1200px) {
   .main-content.split-view {
     grid-template-columns: 300px 1fr; /* Slightly smaller detailed view on larger tablets */
@@ -177,10 +174,6 @@
   .filter-dropdown select {
     width: 100%; /* Filters take full width */
   }
-
-  .grid {
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); /* Smaller cards on tablets */
-  }
 }
 
 /* For screens smaller than 768px (typical mobile landscape) */
@@ -210,10 +203,6 @@
   .filter-dropdown input,
   .filter-dropdown select {
     width: 100%; /* Ensure full width */
-  }
-
-  .grid {
-    grid-template-columns: 1fr; /* Single column for container cards on mobile */
   }
 
   .main-content {
