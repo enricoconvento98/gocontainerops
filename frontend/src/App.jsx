@@ -18,6 +18,7 @@ function App() {
   const [statusFilter, setStatusFilter] = useState('');
   const [showDashboard, setShowDashboard] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
+  const [sortOrder, setSortOrder] = useState('created_desc'); // New state for sorting
   const containerHistories = useRef({});
 
   useEffect(() => {
@@ -29,7 +30,18 @@ function App() {
         if (statusFilter) params.append('status', statusFilter);
 
         const response = await fetch(`/api/stats?${params.toString()}`);
-        const data = await response.json();
+        let data = await response.json();
+
+        // Apply sorting
+        if (data) {
+          data.sort((a, b) => {
+            if (sortOrder === 'created_desc') {
+              return b.created - a.created;
+            }
+            // Add other sorting options here if needed
+            return 0;
+          });
+        }
 
         setContainers(prevContainers => {
           const newContainers = data || [];
@@ -74,7 +86,7 @@ function App() {
     const interval = setInterval(fetchStats, 2000);
 
     return () => clearInterval(interval);
-  }, [searchQuery, imageFilter, statusFilter]);
+  }, [searchQuery, imageFilter, statusFilter, sortOrder]); // Add sortOrder to dependencies
 
   const handleCardClick = (container) => {
     setSelectedContainer(container);
@@ -98,6 +110,10 @@ function App() {
 
   const handleFilterByStatus = (status) => {
     setStatusFilter(status);
+  };
+
+  const handleSortOrderChange = (event) => {
+    setSortOrder(event.target.value);
   };
 
   const toggleDashboard = () => {
@@ -153,6 +169,12 @@ function App() {
                 <option value="paused">Paused</option>
                 <option value="restarting">Restarting</option>
                 <option value="dead">Dead</option>
+              </select>
+            </div>
+            <div className="filter-dropdown">
+              <select value={sortOrder} onChange={handleSortOrderChange}>
+                <option value="created_desc">Last Started</option>
+                {/* Add more sorting options here */}
               </select>
             </div>
           </div>

@@ -28,6 +28,7 @@ type ContainerData struct {
 	NetOutput   float64 `json:"net_output"` // KB
 	BlockInput  float64 `json:"block_input"` // KB
 	BlockOutput float64 `json:"block_output"` // KB
+	Created     int64   `json:"created"`
 }
 
 var (
@@ -246,5 +247,6 @@ func processStats(c types.Container, stats *types.StatsJSON) ContainerData {
 		NetOutput:   tx / 1024,
 		BlockInput:  blkRead / 1024,
 		BlockOutput: blkWrite / 1024,
+		Created:     c.Created,
 	}
 }
