@@ -8,12 +8,13 @@ function App() {
   const [lastUpdated, setLastUpdated] = useState('');
   const [loading, setLoading] = useState(true);
   const [selectedContainer, setSelectedContainer] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
   const containerHistories = useRef({});
 
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const response = await fetch('/api/stats');
+        const response = await fetch(`/api/stats?search=${searchQuery}`);
         const data = await response.json();
         setContainers(data || []);
         setLastUpdated(new Date().toLocaleTimeString());
@@ -47,7 +48,7 @@ function App() {
     const interval = setInterval(fetchStats, 2000);
 
     return () => clearInterval(interval);
-  }, [selectedContainer]);
+  }, [selectedContainer, searchQuery]);
 
   const handleCardClick = (container) => {
     setSelectedContainer(container);
@@ -57,6 +58,14 @@ function App() {
     setSelectedContainer(null);
   };
 
+  const handleSearchChange = (event) => {
+    setSearchQuery(event.target.value);
+  };
+
+  const filteredContainers = containers.filter((container) =>
+    container.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
     <div className="app">
       <div className="container">
@@ -64,6 +73,14 @@ function App() {
           <div>
             <h1 className="title">Docker Live Monitor</h1>
             <p className="subtitle">Real-time container metrics</p>
+          </div>
+          <div className="search-bar">
+            <input
+              type="text"
+              placeholder="Search containers..."
+              value={searchQuery}
+              onChange={handleSearchChange}
+            />
           </div>
           <div className="last-updated">
             {lastUpdated && `Last updated: ${lastUpdated}`}
@@ -76,10 +93,10 @@ function App() {
               <div className="grid">
                 {loading ? (
                   <div className="loading">Loading Docker Stats...</div>
-                ) : containers.length === 0 ? (
+                ) : filteredContainers.length === 0 ? (
                   <div className="empty">No active containers found.</div>
                 ) : (
-                  containers.map((container) => (
+                  filteredContainers.map((container) => (
                     <ContainerCard
                       key={container.id}
                       container={container}

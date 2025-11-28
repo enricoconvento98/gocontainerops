@@ -6,11 +6,10 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strings"
 	"sync"
 
-
 	"github.com/docker/docker/api/types"
-
 	"github.com/docker/docker/client"
 )
 
@@ -62,6 +61,8 @@ func handleStats(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	searchQuery := r.URL.Query().Get("search")
+
 	var results []ContainerData
 	var wg sync.WaitGroup
 	var mutex sync.Mutex
@@ -71,7 +72,7 @@ func handleStats(w http.ResponseWriter, r *http.Request) {
 		wg.Add(1)
 		go func(c types.Container) {
 			defer wg.Done()
-			
+
 			// We request a one-time stream snapshot (stream: false)
 			statsJSON, err := dockerCli.ContainerStats(ctx, c.ID, false)
 			if err != nil {
@@ -86,7 +87,13 @@ func handleStats(w http.ResponseWriter, r *http.Request) {
 			}
 
 			data := processStats(c, &stats)
-			
+
+			if searchQuery != "" {
+				if !strings.Contains(strings.ToLower(data.Name), strings.ToLower(searchQuery)) {
+					return
+				}
+			}
+
 			mutex.Lock()
 			results = append(results, data)
 			mutex.Unlock()
