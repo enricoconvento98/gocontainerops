@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import ContainerCard from './components/ContainerCard';
 import DetailedView from './components/DetailedView';
 import Dashboard from './components/Dashboard';
@@ -9,18 +9,38 @@ import './components/StatCard.css';
 const ITEMS_PER_PAGE = 10; // Number of containers per page
 
 function App() {
+  // State for filters and sorting, initialized from URL
+  const getInitialFilter = (paramName, defaultValue) => {
+    const params = new URLSearchParams(window.location.search);
+    return params.get(paramName) || defaultValue;
+  };
+
+  const [searchQuery, setSearchQuery] = useState(() => getInitialFilter('search', ''));
+  const [imageFilter, setImageFilter] = useState(() => getInitialFilter('image', ''));
+  const [statusFilter, setStatusFilter] = useState(() => getInitialFilter('status', ''));
+  const [sortOrder, setSortOrder] = useState(() => getInitialFilter('sort', 'created_desc'));
+
   const [containers, setContainers] = useState([]);
   const [lastUpdated, setLastUpdated] = useState('');
   const [loading, setLoading] = useState(true);
   const [selectedContainer, setSelectedContainer] = useState(null);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [imageFilter, setImageFilter] = useState('');
-  const [statusFilter, setStatusFilter] = useState('');
   const [showDashboard, setShowDashboard] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
-  const [sortOrder, setSortOrder] = useState('created_desc'); // New state for sorting
   const containerHistories = useRef({});
 
+  // Effect to update URL when filters/sort change
+  useEffect(() => {
+    const params = new URLSearchParams();
+    if (searchQuery) params.set('search', searchQuery);
+    if (imageFilter) params.set('image', imageFilter);
+    if (statusFilter) params.set('status', statusFilter);
+    if (sortOrder) params.set('sort', sortOrder);
+
+    const newUrl = `${window.location.pathname}?${params.toString()}`;
+    window.history.replaceState({}, '', newUrl);
+  }, [searchQuery, imageFilter, statusFilter, sortOrder]);
+
+  // Effect to fetch stats
   useEffect(() => {
     const fetchStats = async () => {
       try {
@@ -96,25 +116,25 @@ function App() {
     setSelectedContainer(null);
   };
 
-  const handleSearchChange = (event) => {
+  const handleSearchChange = useCallback((event) => {
     setSearchQuery(event.target.value);
-  };
+  }, []);
 
-  const handleImageFilterChange = (event) => {
+  const handleImageFilterChange = useCallback((event) => {
     setImageFilter(event.target.value);
-  };
+  }, []);
 
-  const handleStatusFilterChange = (event) => {
+  const handleStatusFilterChange = useCallback((event) => {
     setStatusFilter(event.target.value);
-  };
+  }, []);
 
-  const handleFilterByStatus = (status) => {
+  const handleFilterByStatus = useCallback((status) => {
     setStatusFilter(status);
-  };
+  }, []);
 
-  const handleSortOrderChange = (event) => {
+  const handleSortOrderChange = useCallback((event) => {
     setSortOrder(event.target.value);
-  };
+  }, []);
 
   const toggleDashboard = () => {
     setShowDashboard(!showDashboard);
