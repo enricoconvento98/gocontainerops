@@ -1,21 +1,24 @@
-# Docker Live Monitor
+# GoContainerOps
 
-![Docker Live Monitor Screenshot](https://i.imgur.com/9A7f4iL.png)
+![GoContainerOps Screenshot](https://i.imgur.com/9A7f4iL.png)
 
-A lightweight, real-time Docker container monitoring dashboard written in Go and React. It connects to the local Docker socket to display CPU usage, memory consumption, network I/O, and block I/O for all active containers.
+A lightweight, real-time container monitoring dashboard written in Go and React. It connects to the local Docker socket to display CPU usage, memory consumption, network I/O, and block I/O for all active containers.
 
 ## ✨ Features
 
-- **Real-time Monitoring**: View live metrics for all your running Docker containers.
+- **Real-time Monitoring**: View live metrics for all your running containers.
 - **Detailed Stats**: Get detailed information on CPU, memory, network I/O, and block I/O.
 - **Historical Data**: See the last 120 seconds of CPU, memory, and network I/O history for each container.
-- **Interactive UI**: A modern and responsive user interface built with React and Chart.js.
+- **Interactive UI**: A modern and responsive user interface built with React and Chart.js, with zoom and pan functionality.
+- **Container Processes**: View processes running inside each container.
+- **Container Logs**: Access real-time logs for each container.
+- **Filtering**: Filter containers by name, image, and status.
 - **Easy to Use**: Get up and running with a single command.
 
 ## 📂 Folder Structure
 
 ```
-docker-monitor/
+gocontainerops/
 ├── main.go               # Go backend: fetches stats from Docker API
 ├── go.mod                # Go module definitions
 ├── Dockerfile            # Multi-stage Docker build file

@@ -1,4 +1,4 @@
-module docker-monitor
+module gocontainerops
 
 go 1.23
 

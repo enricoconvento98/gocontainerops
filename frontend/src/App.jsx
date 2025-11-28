@@ -85,8 +85,8 @@ function App() {
       <div className="container">
         <header className="header">
           <div>
-            <h1 className="title">Docker Live Monitor</h1>
-            <p className="subtitle">Real-time container metrics</p>
+            <h1 className="title">GoContainerOps</h1>
+            <p className="subtitle">Real-time Go Container Metrics</p>
           </div>
           <div className="filters">
             <div className="search-bar">
