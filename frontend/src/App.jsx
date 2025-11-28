@@ -6,6 +6,8 @@ import './App.css';
 import './components/Dashboard.css';
 import './components/StatCard.css';
 
+const ITEMS_PER_PAGE = 10; // Number of containers per page
+
 function App() {
   const [containers, setContainers] = useState([]);
   const [lastUpdated, setLastUpdated] = useState('');
@@ -15,6 +17,7 @@ function App() {
   const [imageFilter, setImageFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [showDashboard, setShowDashboard] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
   const containerHistories = useRef({});
 
   useEffect(() => {
@@ -41,6 +44,7 @@ function App() {
 
         setLastUpdated(new Date().toLocaleTimeString());
         setLoading(false);
+        setCurrentPage(1); // Reset to first page on new data/filters
 
         // Update histories
         (data || []).forEach((container) => {
@@ -92,12 +96,26 @@ function App() {
     setStatusFilter(event.target.value);
   };
 
+  const handleFilterByStatus = (status) => {
+    setStatusFilter(status);
+  };
+
   const toggleDashboard = () => {
     setShowDashboard(!showDashboard);
   };
 
-  // Frontend filtering is no longer needed as backend handles it
-  const displayedContainers = containers;
+  // Pagination Logic
+  const indexOfLastContainer = currentPage * ITEMS_PER_PAGE;
+  const indexOfFirstContainer = indexOfLastContainer - ITEMS_PER_PAGE;
+  const currentContainers = containers.slice(indexOfFirstContainer, indexOfLastContainer);
+
+  const totalPages = Math.ceil(containers.length / ITEMS_PER_PAGE);
+
+  const paginate = (pageNumber) => {
+    if (pageNumber > 0 && pageNumber <= totalPages) {
+      setCurrentPage(pageNumber);
+    }
+  };
 
   return (
     <div className="app">
@@ -148,7 +166,7 @@ function App() {
           </div>
         </header>
 
-        {showDashboard && <Dashboard containers={containers} />}
+        {showDashboard && <Dashboard containers={containers} onFilterByStatus={handleFilterByStatus} />}
 
         <div className={`main-content ${selectedContainer ? 'split-view' : ''}`}>
           <div className="containers-section">
@@ -156,10 +174,10 @@ function App() {
               <div className="container-list">
                 {loading ? (
                   <div className="loading">Loading Docker Stats...</div>
-                ) : displayedContainers.length === 0 ? (
+                ) : currentContainers.length === 0 ? (
                   <div className="empty">No active containers found.</div>
                 ) : (
-                  displayedContainers.map((container) => (
+                  currentContainers.map((container) => (
                     <ContainerCard
                       key={container.id}
                       container={container}
@@ -171,6 +189,17 @@ function App() {
                 )}
               </div>
             </div>
+            {totalPages > 1 && (
+              <div className="pagination">
+                <button onClick={() => paginate(currentPage - 1)} disabled={currentPage === 1}>
+                  Previous
+                </button>
+                <span>Page {currentPage} of {totalPages}</span>
+                <button onClick={() => paginate(currentPage + 1)} disabled={currentPage === totalPages}>
+                  Next
+                </button>
+              </div>
+            )}
           </div>
 
           {selectedContainer && (

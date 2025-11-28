@@ -2,23 +2,27 @@ import React from 'react';
 import StatCard from './StatCard';
 import './Dashboard.css';
 
-function Dashboard({ containers }) {
+function Dashboard({ containers, onFilterByStatus }) {
   const activeContainers = containers.filter(c => c.state === 'running').length;
   const totalContainers = containers.length;
 
   return (
     <div className="dashboard">
       <div className="stats-grid">
-        <StatCard
-          title="Active Containers"
-          value={activeContainers}
-          icon="🚀"
-        />
-        <StatCard
-          title="Total Containers"
-          value={totalContainers}
-          icon="📦"
-        />
+        <div onClick={() => onFilterByStatus('running')} style={{ cursor: 'pointer' }}>
+          <StatCard
+            title="Active Containers"
+            value={activeContainers}
+            icon="🚀"
+          />
+        </div>
+        <div onClick={() => onFilterByStatus('')} style={{ cursor: 'pointer' }}>
+          <StatCard
+            title="Total Containers"
+            value={totalContainers}
+            icon="📦"
+          />
+        </div>
       </div>
     </div>
   );
