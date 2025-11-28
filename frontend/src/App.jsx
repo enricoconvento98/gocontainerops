@@ -102,6 +102,7 @@ function App() {
                       container={container}
                       onClick={() => handleCardClick(container)}
                       isSelected={selectedContainer?.id === container.id}
+                      isDetailedViewOpen={!!selectedContainer}
                     />
                   ))
                 )}

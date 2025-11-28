@@ -19,6 +19,34 @@
     box-shadow: 0 0 0 2px rgba(96, 165, 250, 0.3);
 }
 
+.card-small {
+    padding: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.card-small .card-header {
+    margin-bottom: 0;
+    flex-grow: 1;
+    align-items: center;
+}
+
+.card-small .card-title {
+    font-size: 0.875rem;
+    max-width: 150px;
+}
+
+.card-small .badge {
+    font-size: 0.6rem;
+    padding: 0.1rem 0.4rem;
+}
+
+.card-small .card-subtitle,
+.card-small .card-body {
+    display: none;
+}
+
 .card-header {
     display: flex;
     justify-content: space-between;
