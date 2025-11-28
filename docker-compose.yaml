@@ -1,0 +1,12 @@
+version: '3.8'
+
+services:
+  monitor:
+    build: .
+    container_name: docker-monitor
+    ports:
+      - "8080:8080"
+    volumes:
+      # CRITICAL: This gives the container access to the host's Docker API
+      - /var/run/docker.sock:/var/run/docker.sock
+    restart: unless-stopped
