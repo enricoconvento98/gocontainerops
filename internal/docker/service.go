@@ -23,4 +23,7 @@ type DockerService interface {
 
     // ContainerTop is used in HandleProcesses
 	ContainerTop(ctx context.Context, containerID string, arguments []string) (container.ContainerTopOKBody, error)
+
+	// ContainerInspect is used in HandleStats to get detailed info like RestartCount
+	ContainerInspect(ctx context.Context, containerID string) (types.ContainerJSON, error)
 }

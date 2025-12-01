@@ -5,7 +5,7 @@ import (
 )
 
 // processStats calculates percentages from raw docker stats
-func ProcessStats(c types.Container, stats *types.StatsJSON) ContainerData {
+func ProcessStats(c types.Container, stats *types.StatsJSON, restartCount int) ContainerData {
 	// CPU Calculation
 	cpuDelta := float64(stats.CPUStats.CPUUsage.TotalUsage) - float64(stats.PreCPUStats.CPUUsage.TotalUsage)
 	systemDelta := float64(stats.CPUStats.SystemUsage) - float64(stats.PreCPUStats.SystemUsage)
@@ -64,5 +64,7 @@ func ProcessStats(c types.Container, stats *types.StatsJSON) ContainerData {
 		BlockInput:  blkRead / 1024,
 		BlockOutput: blkWrite / 1024,
 		Created:     c.Created,
+		RestartCount: restartCount,
+		Uptime:      CalculateUptime(c.Created, c.State),
 	}
 }

@@ -8,17 +8,21 @@ import (
 	"net/http"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/docker/docker/api/types"
 
 	"gocontainerops/internal/container"
 	"gocontainerops/internal/docker"
+	"gocontainerops/internal/storage"
 )
 
 // Handler struct to hold dependencies
 type Handler struct {
 	DockerService docker.DockerService
+	HistoryStore  storage.HistoryStore
 }
+
 
 // HandleProcesses handles the /api/processes/ endpoint
 func (h *Handler) HandleProcesses(w http.ResponseWriter, r *http.Request) {
@@ -162,6 +166,15 @@ func (h *Handler) HandleStats(w http.ResponseWriter, r *http.Request) {
 		go func(c types.Container) {
 			defer wg.Done()
 
+			// Inspect to get RestartCount
+			jsonInfo, err := h.DockerService.ContainerInspect(ctx, c.ID)
+			restartCount := 0
+			if err == nil {
+				restartCount = jsonInfo.RestartCount
+			} else {
+				log.Printf("Error inspecting container %s: %v", c.ID[:10], err)
+			}
+
 			// We request a one-time stream snapshot (stream: false)
 			statsReader, err := h.DockerService.ContainerStats(ctx, c.ID) // Renamed to statsReader for clarity
             if err != nil {
@@ -176,7 +189,70 @@ func (h *Handler) HandleStats(w http.ResponseWriter, r *http.Request) {
                 return
             }
 
-			data := container.ProcessStats(c, &stats)
+			data := container.ProcessStats(c, &stats, restartCount)
+
+			mutex.Lock()
+			results = append(results, data)
+		mutex.Unlock()
+		
+		// Store metric snapshot in history
+		if h.HistoryStore != nil {
+			h.HistoryStore.AddMetric(storage.MetricSnapshot{
+				ContainerID: data.ID,
+				Timestamp:   time.Now(),
+				CPUPercent:  data.CPUPercent,
+				MemUsage:    data.MemUsage,
+				MemPercent:  data.MemPercent,
+				NetInput:    data.NetInput,
+				NetOutput:   data.NetOutput,
+			})
+		}
+	}(c)
+}
+
+wg.Wait()
+
+w.Header().Set("Content-Type", "application/json")
+json.NewEncoder(w).Encode(results)
+}
+
+// HandleAggregateMetrics handles the /api/metrics/aggregate endpoint
+func (h *Handler) HandleAggregateMetrics(w http.ResponseWriter, r *http.Request) {
+	ctx := context.Background()
+	containers, err := h.DockerService.ListContainers(ctx, types.ContainerListOptions{All: true})
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	var results []container.ContainerData
+	var wg sync.WaitGroup
+	var mutex sync.Mutex
+
+	// Fetch stats for each container concurrently
+	for _, c := range containers {
+		wg.Add(1)
+		go func(c types.Container) {
+			defer wg.Done()
+
+			jsonInfo, err := h.DockerService.ContainerInspect(ctx, c.ID)
+			restartCount := 0
+			if err == nil {
+				restartCount = jsonInfo.RestartCount
+			}
+
+			statsReader, err := h.DockerService.ContainerStats(ctx, c.ID)
+			if err != nil {
+				return
+			}
+			defer statsReader.Close()
+
+			var stats types.StatsJSON
+			if err := json.NewDecoder(statsReader).Decode(&stats); err != nil {
+				return
+			}
+
+			data := container.ProcessStats(c, &stats, restartCount)
 
 			mutex.Lock()
 			results = append(results, data)
@@ -186,6 +262,54 @@ func (h *Handler) HandleStats(w http.ResponseWriter, r *http.Request) {
 
 	wg.Wait()
 
+	// Calculate aggregate metrics
+	aggregateMetrics := container.CalculateAggregateMetrics(results)
+
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(results)
+	json.NewEncoder(w).Encode(aggregateMetrics)
+}
+
+// HandleContainerHistory handles the /api/history/:id endpoint
+func (h *Handler) HandleContainerHistory(w http.ResponseWriter, r *http.Request) {
+	if h.HistoryStore == nil {
+		http.Error(w, "History store not available", http.StatusServiceUnavailable)
+		return
+	}
+
+	id := strings.TrimPrefix(r.URL.Path, "/api/history/")
+	
+	// Get metrics from last hour by default
+	since := time.Now().Add(-1 * time.Hour)
+	if sinceParam := r.URL.Query().Get("since"); sinceParam != "" {
+		if duration, err := time.ParseDuration(sinceParam); err == nil {
+			since = time.Now().Add(-duration)
+		}
+	}
+
+	metrics, err := h.HistoryStore.GetMetrics(id, since)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(metrics)
+}
+
+// HandleEvents handles the /api/events endpoint
+func (h *Handler) HandleEvents(w http.ResponseWriter, r *http.Request) {
+	if h.HistoryStore == nil {
+		http.Error(w, "History store not available", http.StatusServiceUnavailable)
+		return
+	}
+
+	limit := 100
+	events, err := h.HistoryStore.GetAllEvents(limit)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(events)
 }

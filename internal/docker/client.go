@@ -48,3 +48,8 @@ func (c *Client) ContainerLogs(ctx context.Context, containerID string, options 
 func (c *Client) ContainerTop(ctx context.Context, containerID string, arguments []string) (container.ContainerTopOKBody, error) { // ⬅️ UPDATED TYPE
 	return c.cli.ContainerTop(ctx, containerID, arguments)
 }
+
+// ContainerInspect returns the detailed information of a container
+func (c *Client) ContainerInspect(ctx context.Context, containerID string) (types.ContainerJSON, error) {
+	return c.cli.ContainerInspect(ctx, containerID)
+}

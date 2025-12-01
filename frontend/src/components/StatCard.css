@@ -13,15 +13,29 @@
     transform: translateY(-4px);
     border-color: #a855f7;
   }
+
+  .stat-card-highlight {
+    border-color: #ef4444;
+    background: linear-gradient(135deg, #1f2937 0%, #3f1f1f 100%);
+  }
+
+  .stat-card-highlight:hover {
+    border-color: #f87171;
+  }
   
   .stat-card-icon {
     font-size: 2rem;
     color: #a855f7;
   }
+
+  .stat-card-highlight .stat-card-icon {
+    color: #ef4444;
+  }
   
   .stat-card-info {
     display: flex;
     flex-direction: column;
+    gap: 0.25rem;
   }
   
   .stat-card-title {
@@ -36,4 +50,13 @@
     color: #f9fafb;
     margin: 0;
   }
+
+  .stat-card-subtitle {
+    font-size: 0.75rem;
+    color: #6b7280;
+    margin: 0;
+    font-style: italic;
+  }
+  
+
   
