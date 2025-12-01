@@ -40,6 +40,13 @@ function App() {
     window.history.replaceState({}, '', newUrl);
   }, [searchQuery, imageFilter, statusFilter, sortOrder]);
 
+  // Keep track of selected container ID to avoid stale closures in setInterval
+  const selectedContainerRef = useRef(null);
+
+  useEffect(() => {
+    selectedContainerRef.current = selectedContainer;
+  }, [selectedContainer]);
+
   // Effect to fetch stats
   useEffect(() => {
     const fetchStats = async () => {
@@ -65,18 +72,14 @@ function App() {
 
         setContainers(prevContainers => {
           const newContainers = data || [];
-          if (selectedContainer) {
-            return prevContainers.map(pc => {
-              const updatedContainer = newContainers.find(nc => nc.id === pc.id);
-              return updatedContainer || pc;
-            });
-          }
           return newContainers;
         });
 
         setLastUpdated(new Date().toLocaleTimeString());
         setLoading(false);
-        setCurrentPage(1); // Reset to first page on new data/filters
+        // Only reset page if we are searching/filtering, not just updating stats
+        // But here we can't easily distinguish. For now, let's NOT reset page on every poll
+        // setCurrentPage(1); // REMOVED: This was resetting page every 2 seconds!
 
         // Update histories
         (data || []).forEach((container) => {
@@ -90,8 +93,8 @@ function App() {
         });
 
         // Update selected container with latest data
-        if (selectedContainer) {
-          const updated = data.find(c => c.id === selectedContainer.id);
+        if (selectedContainerRef.current) {
+          const updated = data.find(c => c.id === selectedContainerRef.current.id);
           if (updated) {
             setSelectedContainer(updated);
           }
