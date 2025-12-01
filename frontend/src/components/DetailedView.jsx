@@ -33,6 +33,7 @@ function DetailedView({ container, onClose, history }) {
     const [activeTab, setActiveTab] = useState('stats');
     const [logs, setLogs] = useState([]); // Change to array for easier line management
     const [processes, setProcesses] = useState({ Titles: [], Processes: [] });
+    const [labels, setLabels] = useState(Array(history?.length || 0).fill(''));
     const [cpuHistory, setCpuHistory] = useState([]);
     const [memHistory, setMemHistory] = useState(history || []);
     const [netInHistory, setNetInHistory] = useState([]);
@@ -48,6 +49,13 @@ function DetailedView({ container, onClose, history }) {
     }, [logs, activeTab, followLogs]);
 
     useEffect(() => {
+        const now = new Date().toLocaleTimeString();
+        setLabels((prev) => {
+            const newLabels = [...prev, now];
+            if (newLabels.length > MAX_HISTORY) newLabels.shift();
+            return newLabels;
+        });
+
         setCpuHistory((prev) => {
             const newHistory = [...prev, container.cpu_percent];
             if (newHistory.length > MAX_HISTORY) newHistory.shift();
@@ -132,7 +140,7 @@ function DetailedView({ container, onClose, history }) {
     }, [activeTab, container.id, followLogs]); // Add followLogs to dependencies
 
     const createChartData = (data, label, color) => ({
-        labels: Array(data.length).fill(''),
+        labels: labels,
         datasets: [
             {
                 label,
@@ -171,7 +179,11 @@ function DetailedView({ container, onClose, history }) {
             }
         },
         scales: {
-            x: { display: false },
+            x: {
+                display: true,
+                grid: { color: '#374151' },
+                ticks: { color: '#9ca3af', font: { size: 11 }, maxTicksLimit: 8 },
+            },
             y: {
                 display: true,
                 grid: { color: '#374151' },
